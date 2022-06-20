@@ -1,0 +1,6 @@
+domain: zise.feizhu
+layout:
+- go.kubebuilder.io/v3
+projectName: workload-operator
+repo: github.com/zisefeizhu/workload-operator
+version: "3"
