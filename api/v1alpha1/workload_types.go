@@ -17,6 +17,7 @@ limitations under the License.
 package v1alpha1
 
 import (
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -29,7 +30,18 @@ type WorkloadSpec struct {
 	// Important: Run "make" to regenerate code after modifying this file
 
 	// Foo is an example field of Workload. Edit workload_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+	//Foo string `json:"foo,omitempty"`
+	// 部署组类型
+	Type string `json:"type"`
+	// 副本数
+	Replicas int32 `json:"replicas"`
+	// 是否启用service
+	EnableService bool `json:"enableService"`
+	// 标签选择器
+	Selector *metav1.LabelSelector `json:"selector"`
+	// 模版
+	Template    *corev1.PodTemplate `json:"template"`
+	ServiceSpec *corev1.ServiceSpec `json:"serviceSpec"`
 }
 
 // WorkloadStatus defines the observed state of Workload

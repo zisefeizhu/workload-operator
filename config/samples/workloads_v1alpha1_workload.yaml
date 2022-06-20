@@ -1,7 +1,22 @@
+# apiVersion: workloads.zise.feizhu/v1alpha1
+# kind: Workload
+# metadata:
+#   name: workload-sample
+# spec:
+#   # Add fields here
+#   foo: bar
+
+
 apiVersion: workloads.zise.feizhu/v1alpha1
 kind: Workload
 metadata:
-  name: workload-sample
+  name: dev
+  namespace: zisefeizhu-dev
 spec:
+# type: deployment/statefulSet/daemonSet/job/cronJob
+  type: deployments
+  replicas: 3
+  enableService: true
+
   # Add fields here
-  foo: bar
+#   foo: bar
