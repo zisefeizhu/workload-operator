@@ -3,4 +3,14 @@ layout:
 - go.kubebuilder.io/v3
 projectName: workload-operator
 repo: github.com/zisefeizhu/workload-operator
+resources:
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: zise.feizhu
+  group: workloads
+  kind: Workload
+  path: github.com/zisefeizhu/workload-operator/api/v1alpha1
+  version: v1alpha1
 version: "3"

@@ -1,0 +1,7 @@
+apiVersion: workloads.zise.feizhu/v1alpha1
+kind: Workload
+metadata:
+  name: workload-sample
+spec:
+  # Add fields here
+  foo: bar
