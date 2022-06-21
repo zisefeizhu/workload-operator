@@ -18,6 +18,17 @@ package controllers
 
 import (
 	"context"
+	"fmt"
+	"github.com/zisefeizhu/workload-operator/utils"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/tools/record"
+	"reflect"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+	"sigs.k8s.io/controller-runtime/pkg/log"
+	"time"
 
 	workloadsv1alpha1 "github.com/zisefeizhu/workload-operator/api/v1alpha1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -28,10 +39,12 @@ import (
 // WorkloadReconciler reconciles a Workload object
 type WorkloadReconciler struct {
 	client.Client
-	Scheme *runtime.Scheme
+	Scheme   *runtime.Scheme
+	Recorder record.EventRecorder
 }
 
 //+kubebuilder:rbac:groups=workloads.zise.feizhu,resources=workloads,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=apps,resources=deployments,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=workloads.zise.feizhu,resources=workloads/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=workloads.zise.feizhu,resources=workloads/finalizers,verbs=update
 
@@ -45,10 +58,78 @@ type WorkloadReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.8.3/pkg/reconcile
 func (r *WorkloadReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	//_ = log.FromContext(ctx)
+	logger := log.FromContext(ctx)
+	workload := &workloadsv1alpha1.Workload{}
+	if err := r.Get(ctx, req.NamespacedName, workload); err != nil {
+		return ctrl.Result{}, client.IgnoreNotFound(err)
+	}
+	app := NewWorkload(workload).Create()
+	if err := controllerutil.SetControllerReference(workload, app.(metav1.Object), r.Scheme); err != nil {
+		return ctrl.Result{}, err
+	}
+	d := NewWorkload(workload).Found()
+	if err := r.Get(ctx, req.NamespacedName, d.(client.Object)); err != nil {
+		if errors.IsNotFound(err) {
+			err := r.Create(ctx, app.(client.Object))
+			if err != nil {
+				logger.Error(err, "create app failed")
+				return ctrl.Result{RequeueAfter: 2 * time.Second}, err
+			}
+			r.Recorder.Event(workload, corev1.EventTypeNormal, fmt.Sprintf("%s-controller", workload.Spec.Type), fmt.Sprintf("type is %s name is %s create in  %s namespace", workload.Spec.Type, workload.Name, workload.Namespace))
+		}
+		if !errors.IsNotFound(err) {
+			return ctrl.Result{}, err
+		}
+	} else {
+		// 这里update 需要优化
+		// todo
+		// 需要比对 新旧工作负载的spec 字段 ，类此
+		//if !reflect.DeepEqual(deploy.Spec, found.Spec) {
+		//	found.Spec = deploy.Spec
+		//}
+		if err := r.Update(ctx, app.(client.Object)); err != nil {
+			logger.Error(err, "update app failed")
+			return ctrl.Result{}, err
+		} else {
+			// todo 增加事件
+		}
+	}
 
-	// your logic here
-
+	// service的处理
+	service := utils.NewService(workload)
+	err := controllerutil.SetControllerReference(workload, service, r.Scheme)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+	s := &corev1.Service{}
+	if err := r.Get(ctx, types.NamespacedName{Name: workload.Name, Namespace: workload.Namespace}, s); err != nil {
+		if errors.IsNotFound(err) && workload.Spec.EnableService {
+			if err := r.Create(ctx, service); err != nil {
+				logger.Error(err, "create service failed")
+				return ctrl.Result{}, err
+			}
+		}
+		if !errors.IsNotFound(err) && workload.Spec.EnableService {
+			return ctrl.Result{}, err
+		}
+	} else {
+		if workload.Spec.EnableService {
+			currIP := s.Spec.ClusterIP
+			s.Spec.ClusterIP = currIP
+			service.Spec.ClusterIP = currIP
+			if !reflect.DeepEqual(s.Spec, service.Spec) {
+				s.Spec = service.Spec
+				if err := r.Update(ctx, s); err != nil {
+					logger.Error(err, "update service failed")
+					return ctrl.Result{}, err
+				}
+			}
+		} else {
+			if err := r.Delete(ctx, s); err != nil {
+				return ctrl.Result{}, err
+			}
+		}
+	}
 	return ctrl.Result{}, nil
 }
 
