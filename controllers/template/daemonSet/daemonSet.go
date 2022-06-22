@@ -1,4 +1,4 @@
-package deployment
+package daemonSet
 
 import (
 	workloadsv1alpha1 "github.com/zisefeizhu/workload-operator/api/v1alpha1"
@@ -7,25 +7,24 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-type deploymentClient struct {
+type daemonSetClient struct {
 	w *workloadsv1alpha1.Workload
 }
 
-func NewDeployment(w *workloadsv1alpha1.Workload) *deploymentClient {
-	return &deploymentClient{
+func NewDaemonSet(w *workloadsv1alpha1.Workload) *daemonSetClient {
+	return &daemonSetClient{
 		w: w,
 	}
 }
 
-func (d *deploymentClient) Create() interface{} {
-	return &appv1.Deployment{
+func (d *daemonSetClient) Template() interface{} {
+	return &appv1.DaemonSet{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      d.w.Name,
 			Namespace: d.w.Namespace,
 			Labels:    d.w.Labels,
 		},
-		Spec: appv1.DeploymentSpec{
-			Replicas: d.w.Spec.Replicas,
+		Spec: appv1.DaemonSetSpec{
 			Selector: d.w.Spec.Selector,
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
@@ -37,6 +36,6 @@ func (d *deploymentClient) Create() interface{} {
 	}
 }
 
-func (d *deploymentClient) Found() interface{} {
-	return &appv1.Deployment{}
+func (d *daemonSetClient) Found() interface{} {
+	return &appv1.DaemonSet{}
 }

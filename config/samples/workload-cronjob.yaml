@@ -15,7 +15,7 @@ metadata:
     test1: zisefeizhu1
 spec:
 # # type: deployment/statefulSet/daemonSet/job/cronJob 
-  type: deployment 
+  type: cronJob
   selector:
     matchLabels:
       test: zisefeizhu
@@ -27,7 +27,8 @@ spec:
     protocol: TCP
     port: 80
     targetPort: http-web-svc
-  enableService: true 
+  enableService: false
+  schedule: "* * * * *"  
   template:
     metadata:
       labels:
@@ -35,7 +36,12 @@ spec:
         test1: zisefeizhu1
     spec:
       containers:
-      - name: nginx
-        image: nginx:1.14.2
-        ports:
-        - containerPort: 80
+      - name: hello
+        image: busybox:1.28
+        imagePullPolicy: IfNotPresent
+        command:
+        - /bin/sh
+        - -c
+        - date; echo Hello from the Kubernetes cluster
+      restartPolicy: OnFailure
+      

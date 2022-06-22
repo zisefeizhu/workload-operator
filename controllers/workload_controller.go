@@ -19,6 +19,7 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"github.com/go-logr/logr"
 	"github.com/zisefeizhu/workload-operator/utils"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -63,10 +64,20 @@ func (r *WorkloadReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	if err := r.Get(ctx, req.NamespacedName, workload); err != nil {
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
-	app := NewWorkload(workload).Create()
+
+	// 获取工作负载模版
+	app := NewWorkload(workload).Template()
 	if err := controllerutil.SetControllerReference(workload, app.(metav1.Object), r.Scheme); err != nil {
 		return ctrl.Result{}, err
 	}
+
+	// svc
+	// svc 先与workload 创建
+	err := r.svc(logger, workload, ctx)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+
 	d := NewWorkload(workload).Found()
 	if err := r.Get(ctx, req.NamespacedName, d.(client.Object)); err != nil {
 		if errors.IsNotFound(err) {
@@ -95,22 +106,34 @@ func (r *WorkloadReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		}
 	}
 
+	return ctrl.Result{}, nil
+}
+
+// SetupWithManager sets up the controller with the Manager.
+func (r *WorkloadReconciler) SetupWithManager(mgr ctrl.Manager) error {
+	return ctrl.NewControllerManagedBy(mgr).
+		For(&workloadsv1alpha1.Workload{}).
+		Complete(r)
+}
+
+func (r *WorkloadReconciler) svc(logger logr.Logger, workload *workloadsv1alpha1.Workload, ctx context.Context) error {
 	// service的处理
 	service := utils.NewService(workload)
 	err := controllerutil.SetControllerReference(workload, service, r.Scheme)
 	if err != nil {
-		return ctrl.Result{}, err
+		return err
 	}
 	s := &corev1.Service{}
 	if err := r.Get(ctx, types.NamespacedName{Name: workload.Name, Namespace: workload.Namespace}, s); err != nil {
 		if errors.IsNotFound(err) && workload.Spec.EnableService {
 			if err := r.Create(ctx, service); err != nil {
 				logger.Error(err, "create service failed")
-				return ctrl.Result{}, err
+				return err
 			}
+			r.Recorder.Event(workload, corev1.EventTypeNormal, fmt.Sprintf("%s-controller", "service"), fmt.Sprintf("type is %s name is %s create in  %s namespace", "serivce", workload.Name, workload.Namespace))
 		}
 		if !errors.IsNotFound(err) && workload.Spec.EnableService {
-			return ctrl.Result{}, err
+			return err
 		}
 	} else {
 		if workload.Spec.EnableService {
@@ -121,21 +144,16 @@ func (r *WorkloadReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 				s.Spec = service.Spec
 				if err := r.Update(ctx, s); err != nil {
 					logger.Error(err, "update service failed")
-					return ctrl.Result{}, err
+					return err
 				}
+				r.Recorder.Event(workload, corev1.EventTypeNormal, fmt.Sprintf("%s-controller", "service"), fmt.Sprintf("type is %s name is %s update in  %s namespace", "serivce", workload.Name, workload.Namespace))
 			}
 		} else {
 			if err := r.Delete(ctx, s); err != nil {
-				return ctrl.Result{}, err
+				return err
 			}
+			r.Recorder.Event(workload, corev1.EventTypeNormal, fmt.Sprintf("%s-controller", "service"), fmt.Sprintf("type is %s name is %s delete in  %s namespace", "serivce", workload.Name, workload.Namespace))
 		}
 	}
-	return ctrl.Result{}, nil
-}
-
-// SetupWithManager sets up the controller with the Manager.
-func (r *WorkloadReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	return ctrl.NewControllerManagedBy(mgr).
-		For(&workloadsv1alpha1.Workload{}).
-		Complete(r)
+	return nil
 }

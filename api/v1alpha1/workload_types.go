@@ -32,6 +32,8 @@ type WorkloadSpec struct {
 	// Foo is an example field of Workload. Edit workload_types.go to remove/update
 	//Foo string `json:"foo,omitempty"`
 	// 部署组类型
+	// todo 判断type的类型
+	// 可取值范围deployment/statefulSet/daemonSet/job/cronJob
 	Type string `json:"type"`
 	// 副本数
 	Replicas *int32 `json:"replicas,omitempty"`
@@ -45,6 +47,17 @@ type WorkloadSpec struct {
 	ServiceType corev1.ServiceType `json:"serviceType,omitempty"`
 	// service 端口
 	ServicePorts []corev1.ServicePort `json:"servicePorts,omitempty"`
+	// statefulSet 存储模版
+	VolumeClaimTemplates []corev1.PersistentVolumeClaim `json:"volumeClaimTemplates,omitempty"`
+	// statefulSet 无头服务
+	//clusterIP: None
+	HeadlessService bool `json:"headlessService,omitempty"`
+	// job 重试次数
+	//backoffLimit
+	JobBackoffLimit *int32 `json:"jobBackoffLimit,omitempty"`
+	// crontabJob
+	// schedule
+	Schedule string `json:"schedule,omitempty"`
 }
 
 //type workloadService struct {

@@ -53,7 +53,7 @@ func NewService(workload *v1alpha1.Workload) *corev1.Service {
 	if workload.Spec.ServiceType == "" {
 		workload.Spec.ServiceType = corev1.ServiceTypeClusterIP
 	}
-	return &corev1.Service{
+	svc := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      workload.Name,
 			Namespace: workload.Namespace,
@@ -64,4 +64,9 @@ func NewService(workload *v1alpha1.Workload) *corev1.Service {
 			Ports:    workload.Spec.ServicePorts,
 		},
 	}
+	if workload.Spec.HeadlessService {
+		svc.Spec.ClusterIP = corev1.ClusterIPNone
+		svc.Spec.Type = ""
+	}
+	return svc
 }

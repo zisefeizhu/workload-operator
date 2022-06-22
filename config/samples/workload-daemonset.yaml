@@ -15,12 +15,11 @@ metadata:
     test1: zisefeizhu1
 spec:
 # # type: deployment/statefulSet/daemonSet/job/cronJob 
-  type: deployment 
+  type: daemonSet 
   selector:
     matchLabels:
       test: zisefeizhu
       test1: zisefeizhu1
-  replicas: 1
   serviceType: NodePort 
   servicePorts:
   - name: name-of-service-port
