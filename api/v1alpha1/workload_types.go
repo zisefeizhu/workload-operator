@@ -21,6 +21,16 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+type Kind string
+
+const (
+	DeploymentKind  Kind = "deployment"
+	StatefulSetKind Kind = "statefulSet"
+	DaemonSetKind   Kind = "daemonSet"
+	CronjobKind     Kind = "cronjob"
+	JobKind         Kind = "job"
+)
+
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 // WorkloadSpec defines the desired state of Workload
@@ -28,9 +38,8 @@ type WorkloadSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 	// 部署组类型
-	// 可取值范围deployment/statefulSet/daemonSet/job/cronJob
 	//+kubebuilder:validation:Enum="deployment";"statefulSet";"daemonSet";"job";"cronJob"
-	Type string `json:"type"`
+	Type Kind `json:"type"`
 	// 副本数
 	Replicas *int32 `json:"replicas,omitempty"`
 	// 是否启用service
@@ -60,20 +69,24 @@ type Phase string
 
 const (
 	RunningPhase Phase = "Running"
+	UpdatePhase  Phase = "Update"
+	UnknownPhase Phase = "Unknown"
+	FailedPhase  Phase = "Failed"
 )
 
 // WorkloadStatus defines the observed state of Workload
 type WorkloadStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
+	Type string `json:"type"`
 	// workloads 状态
 	Phase Phase `json:"phase"`
 	// AvailableReplicas 可用副本数
 	AvailableReplicas int32 `json:"availableReplicas"`
 	// replicas  期望副本数
-	Replicas int32 `json:"replicas"`
+	Replicas int32 `json:"replicas,omitempty"`
 	// UnavailableReplicas 不可用副本数
-	UnavailableReplicas int32 `json:"unavailableReplicas"`
+	UnavailableReplicas int32 `json:"unavailableReplicas,omitempty"`
 }
 
 //+kubebuilder:printcolumn:JSONPath=".spec.type",name=Type,type=string

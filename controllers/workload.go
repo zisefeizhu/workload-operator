@@ -17,19 +17,19 @@ type Workload interface {
 func NewWorkload(w *workloadsv1alpha1.Workload) Workload {
 	var cli Workload
 	switch w.Spec.Type {
-	case "deployment":
+	case workloadsv1alpha1.DeploymentKind:
 		cli = deployment.NewDeployment(w)
 		break
-	case "statefulSet":
+	case workloadsv1alpha1.StatefulSetKind:
 		cli = statefulSet.NewStatefulSet(w)
 		break
-	case "daemonSet":
+	case workloadsv1alpha1.DaemonSetKind:
 		cli = daemonSet.NewDaemonSet(w)
 		break
-	case "job":
+	case workloadsv1alpha1.JobKind:
 		cli = job.NewJob(w)
 		break
-	case "cronJob":
+	case workloadsv1alpha1.CronjobKind:
 		cli = cronJob.NewCronJob(w)
 		break
 	}

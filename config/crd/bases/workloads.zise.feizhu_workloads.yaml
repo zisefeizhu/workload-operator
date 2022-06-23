@@ -6413,7 +6413,7 @@ spec:
               type:
                 description: 'INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
                   Important: Run "make" to regenerate code after modifying this file
-                  部署组类型 可取值范围deployment/statefulSet/daemonSet/job/cronJob'
+                  部署组类型'
                 enum:
                 - deployment
                 - statefulSet
@@ -6645,14 +6645,17 @@ spec:
                 format: int32
                 type: integer
               phase:
-                description: 'INSERT ADDITIONAL STATUS FIELD - define observed state
-                  of cluster Important: Run "make" to regenerate code after modifying
-                  this file workloads 状态'
+                description: workloads 状态
                 type: string
               replicas:
                 description: replicas  期望副本数
                 format: int32
                 type: integer
+              type:
+                description: 'INSERT ADDITIONAL STATUS FIELD - define observed state
+                  of cluster Important: Run "make" to regenerate code after modifying
+                  this file'
+                type: string
               unavailableReplicas:
                 description: UnavailableReplicas 不可用副本数
                 format: int32
@@ -6660,8 +6663,7 @@ spec:
             required:
             - availableReplicas
             - phase
-            - replicas
-            - unavailableReplicas
+            - type
             type: object
         type: object
     served: true
