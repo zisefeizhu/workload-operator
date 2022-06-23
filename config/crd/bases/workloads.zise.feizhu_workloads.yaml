@@ -6413,7 +6413,7 @@ spec:
               type:
                 description: 'INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
                   Important: Run "make" to regenerate code after modifying this file
-                  部署组类型 todo 判断type的类型 可取值范围deployment/statefulSet/daemonSet/job/cronJob'
+                  部署组类型 可取值范围deployment/statefulSet/daemonSet/job/cronJob'
                 enum:
                 - deployment
                 - statefulSet

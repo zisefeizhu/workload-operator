@@ -28,7 +28,6 @@ import (
 	"k8s.io/client-go/tools/record"
 	"reflect"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
-	"sigs.k8s.io/controller-runtime/pkg/log"
 	"time"
 
 	workloadsv1alpha1 "github.com/zisefeizhu/workload-operator/api/v1alpha1"
@@ -41,6 +40,7 @@ import (
 type WorkloadReconciler struct {
 	client.Client
 	Scheme   *runtime.Scheme
+	Logger   logr.Logger
 	Recorder record.EventRecorder
 }
 
@@ -65,10 +65,16 @@ type WorkloadReconciler struct {
 */
 
 func (r *WorkloadReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	logger := log.FromContext(ctx)
+	//logger := log.FromContext(ctx)
+	_ = r.Logger.WithValues("workloads", req.NamespacedName)
 	workload := &workloadsv1alpha1.Workload{}
 	if err := r.Get(ctx, req.NamespacedName, workload); err != nil {
 		return ctrl.Result{}, client.IgnoreNotFound(err)
+	}
+
+	err := r.svc(workload, ctx)
+	if err != nil {
+		return ctrl.Result{}, err
 	}
 
 	// 获取工作负载模版
@@ -76,21 +82,12 @@ func (r *WorkloadReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	if err := controllerutil.SetControllerReference(workload, app.(metav1.Object), r.Scheme); err != nil {
 		return ctrl.Result{}, err
 	}
-
-	// svc
-	// 如果创建svc
-	// svc 先与workload 创建 statefulSet
-	err := r.svc(logger, workload, ctx)
-	if err != nil {
-		return ctrl.Result{}, err
-	}
-
 	d := NewWorkload(workload).Found()
 	if err := r.Get(ctx, req.NamespacedName, d.(client.Object)); err != nil {
 		if errors.IsNotFound(err) {
 			err := r.Create(ctx, app.(client.Object))
 			if err != nil {
-				logger.Error(err, "create app failed")
+				r.Logger.Error(err, "create app failed")
 				return ctrl.Result{RequeueAfter: 2 * time.Second}, err
 			}
 			r.Recorder.Event(workload, corev1.EventTypeNormal, fmt.Sprintf("%s-controller", workload.Spec.Type), fmt.Sprintf("type is %s name is %s create in  %s namespace", workload.Spec.Type, workload.Name, workload.Namespace))
@@ -106,7 +103,7 @@ func (r *WorkloadReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		//	found.Spec = deploy.Spec
 		//}
 		if err := r.Update(ctx, app.(client.Object)); err != nil {
-			logger.Error(err, "update app failed")
+			r.Logger.Error(err, "update app failed")
 			return ctrl.Result{}, err
 		}
 		r.Recorder.Event(workload, corev1.EventTypeNormal, fmt.Sprintf("%s-controller", workload.Spec.Type), fmt.Sprintf("type is %s name is %s  update in %s namespace", workload.Spec.Type, workload.Name, workload.Namespace))
@@ -122,7 +119,7 @@ func (r *WorkloadReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Complete(r)
 }
 
-func (r *WorkloadReconciler) svc(logger logr.Logger, workload *workloadsv1alpha1.Workload, ctx context.Context) error {
+func (r *WorkloadReconciler) svc(workload *workloadsv1alpha1.Workload, ctx context.Context) error {
 	// service的处理
 	service := utils.NewService(workload)
 	err := controllerutil.SetControllerReference(workload, service, r.Scheme)
@@ -133,7 +130,7 @@ func (r *WorkloadReconciler) svc(logger logr.Logger, workload *workloadsv1alpha1
 	if err := r.Get(ctx, types.NamespacedName{Name: workload.Name, Namespace: workload.Namespace}, s); err != nil {
 		if errors.IsNotFound(err) && workload.Spec.EnableService {
 			if err := r.Create(ctx, service); err != nil {
-				logger.Error(err, "create service failed")
+				r.Logger.Error(err, "create service failed")
 				return err
 			}
 			r.Recorder.Event(workload, corev1.EventTypeNormal, fmt.Sprintf("%s-controller", "service"), fmt.Sprintf("type is %s name is %s create in  %s namespace", "serivce", workload.Name, workload.Namespace))
@@ -149,7 +146,7 @@ func (r *WorkloadReconciler) svc(logger logr.Logger, workload *workloadsv1alpha1
 			if !reflect.DeepEqual(s.Spec, service.Spec) {
 				s.Spec = service.Spec
 				if err := r.Update(ctx, s); err != nil {
-					logger.Error(err, "update service failed")
+					r.Logger.Error(err, "update service failed")
 					return err
 				}
 				r.Recorder.Event(workload, corev1.EventTypeNormal, fmt.Sprintf("%s-controller", "service"), fmt.Sprintf("type is %s name is %s update in  %s namespace", "serivce", workload.Name, workload.Namespace))
