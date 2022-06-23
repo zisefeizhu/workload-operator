@@ -58,6 +58,12 @@ type WorkloadReconciler struct {
 //
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.8.3/pkg/reconcile
+
+/*
+  1、svc 先于 工作负载创建
+  2、工作负载适配:deployment";"statefulSet";"daemonSet";"job";"cronJob
+*/
+
 func (r *WorkloadReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	logger := log.FromContext(ctx)
 	workload := &workloadsv1alpha1.Workload{}
@@ -72,7 +78,8 @@ func (r *WorkloadReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	}
 
 	// svc
-	// svc 先与workload 创建
+	// 如果创建svc
+	// svc 先与workload 创建 statefulSet
 	err := r.svc(logger, workload, ctx)
 	if err != nil {
 		return ctrl.Result{}, err
@@ -101,9 +108,8 @@ func (r *WorkloadReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		if err := r.Update(ctx, app.(client.Object)); err != nil {
 			logger.Error(err, "update app failed")
 			return ctrl.Result{}, err
-		} else {
-			// todo 增加事件
 		}
+		r.Recorder.Event(workload, corev1.EventTypeNormal, fmt.Sprintf("%s-controller", workload.Spec.Type), fmt.Sprintf("type is %s name is %s  update in %s namespace", workload.Spec.Type, workload.Name, workload.Namespace))
 	}
 
 	return ctrl.Result{}, nil

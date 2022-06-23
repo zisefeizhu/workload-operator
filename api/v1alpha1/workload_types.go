@@ -23,17 +23,13 @@ import (
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
-
 // WorkloadSpec defines the desired state of Workload
 type WorkloadSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
-
-	// Foo is an example field of Workload. Edit workload_types.go to remove/update
-	//Foo string `json:"foo,omitempty"`
 	// 部署组类型
-	// todo 判断type的类型
 	// 可取值范围deployment/statefulSet/daemonSet/job/cronJob
+	//+kubebuilder:validation:Enum="deployment";"statefulSet";"daemonSet";"job";"cronJob"
 	Type string `json:"type"`
 	// 副本数
 	Replicas *int32 `json:"replicas,omitempty"`
@@ -60,22 +56,30 @@ type WorkloadSpec struct {
 	Schedule string `json:"schedule,omitempty"`
 }
 
-//type workloadService struct {
-//	// service 类型
-//	ServiceType corev1.ServiceType `json:"serviceType,omitempty"`
-//	// service 端口
-//	ServicePorts []corev1.ServicePort `json:"servicePorts,omitempty"`
-//}
+type Phase string
+
+const (
+	RunningPhase Phase = "Running"
+)
 
 // WorkloadStatus defines the observed state of Workload
 type WorkloadStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
+	// workloads 状态
+	Phase Phase `json:"phase"`
+	// AvailableReplicas 可用副本数
+	AvailableReplicas int32 `json:"availableReplicas"`
+	// replicas  期望副本数
+	Replicas int32 `json:"replicas"`
+	// UnavailableReplicas 不可用副本数
+	UnavailableReplicas int32 `json:"unavailableReplicas"`
 }
 
 //+kubebuilder:printcolumn:JSONPath=".spec.type",name=Type,type=string
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
+//+kubebuilder:resource:shortName=wk
 
 // Workload is the Schema for the workloads API
 type Workload struct {
