@@ -19,6 +19,7 @@ package v1alpha1
 import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"strings"
 )
 
 type Kind string
@@ -78,18 +79,32 @@ const (
 type WorkloadStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
-	Type string `json:"type"`
-	// workloads 状态
-	Phase Phase `json:"phase"`
+	//// workloads 状态
+	Phase                 Phase `json:"phase" binding:"required"`
+	DeploymentGroupStatus `json:"deploymentGroupStatus,omitempty"`
+	ServiceStatus         `json:"serviceStatus,omitempty"`
+}
+
+// 需要将工作负载的状态等信息给返出来的，和workload的status字段进行对比用
+type DeploymentGroupStatus struct {
+	// 返回工作负载的类型
+	Type Kind `json:"type" binding:"required"`
 	// AvailableReplicas 可用副本数
 	AvailableReplicas int32 `json:"availableReplicas"`
 	// replicas  期望副本数
-	Replicas int32 `json:"replicas,omitempty"`
+	Replicas *int32 `json:"replicas,omitempty"`
 	// UnavailableReplicas 不可用副本数
 	UnavailableReplicas int32 `json:"unavailableReplicas,omitempty"`
 }
 
-//+kubebuilder:printcolumn:JSONPath=".spec.type",name=Type,type=string
+type ServiceStatus struct {
+	// serviceIP  如果EnableService = true 则输出serviceIP
+	ServiceIP string `json:"serviceIP,omitempty"`
+}
+
+//+kubebuilder:printcolumn:JSONPath=".status.type",name=Type,type=string
+//+kubebuilder:printcolumn:JSONPath=".status.replicas",name=Replicas,type=integer
+// +kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp"
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
 //+kubebuilder:resource:shortName=wk
@@ -114,3 +129,16 @@ type WorkloadList struct {
 func init() {
 	SchemeBuilder.Register(&Workload{}, &WorkloadList{})
 }
+
+// wk的状态
+// 1、如果EnableService = true ，则需要总和判断svc和workload的状态1
+// 2、如果EnableService = false，则需要根据期望副本数和可用副本数综合判断
+// type 种类转大写
+func (w *Workload) StatusTypeToUpper(k Kind) Kind {
+	s := string(k)
+	return Kind(strings.ToUpper(s[:1]) + s[1:])
+}
+
+//func (w *WorkloadStatus) workloadPhase() string {
+//	return ""
+//}

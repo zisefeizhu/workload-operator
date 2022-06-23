@@ -20,14 +20,14 @@ spec:
     matchLabels:
       test: zisefeizhu
       test1: zisefeizhu1
-  replicas: 1
-  serviceType: NodePort 
+  replicas: 2
+  serviceType: ClusterIP 
   servicePorts:
   - name: name-of-service-port
     protocol: TCP
     port: 80
     targetPort: http-web-svc
-  enableService: true 
+  enableService: true
   template:
     metadata:
       labels:

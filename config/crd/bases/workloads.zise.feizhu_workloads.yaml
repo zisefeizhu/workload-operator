@@ -19,9 +19,15 @@ spec:
   scope: Namespaced
   versions:
   - additionalPrinterColumns:
-    - jsonPath: .spec.type
+    - jsonPath: .status.type
       name: Type
       type: string
+    - jsonPath: .status.replicas
+      name: Replicas
+      type: integer
+    - jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
     name: v1alpha1
     schema:
       openAPIV3Schema:
@@ -6640,30 +6646,41 @@ spec:
           status:
             description: WorkloadStatus defines the observed state of Workload
             properties:
-              availableReplicas:
-                description: AvailableReplicas 可用副本数
-                format: int32
-                type: integer
+              deploymentGroupStatus:
+                description: 需要将工作负载的状态等信息给返出来的，和workload的status字段进行对比用
+                properties:
+                  availableReplicas:
+                    description: AvailableReplicas 可用副本数
+                    format: int32
+                    type: integer
+                  replicas:
+                    description: replicas  期望副本数
+                    format: int32
+                    type: integer
+                  type:
+                    description: 返回工作负载的类型
+                    type: string
+                  unavailableReplicas:
+                    description: UnavailableReplicas 不可用副本数
+                    format: int32
+                    type: integer
+                required:
+                - availableReplicas
+                - type
+                type: object
               phase:
-                description: workloads 状态
-                type: string
-              replicas:
-                description: replicas  期望副本数
-                format: int32
-                type: integer
-              type:
                 description: 'INSERT ADDITIONAL STATUS FIELD - define observed state
                   of cluster Important: Run "make" to regenerate code after modifying
-                  this file'
+                  this file // workloads 状态'
                 type: string
-              unavailableReplicas:
-                description: UnavailableReplicas 不可用副本数
-                format: int32
-                type: integer
+              serviceStatus:
+                properties:
+                  serviceIP:
+                    description: serviceIP  如果EnableService = true 则输出serviceIP
+                    type: string
+                type: object
             required:
-            - availableReplicas
             - phase
-            - type
             type: object
         type: object
     served: true

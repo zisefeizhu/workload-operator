@@ -1,4 +1,4 @@
-package controllers
+package template
 
 import (
 	workloadsv1alpha1 "github.com/zisefeizhu/workload-operator/api/v1alpha1"
