@@ -19,8 +19,11 @@ spec:
   scope: Namespaced
   versions:
   - additionalPrinterColumns:
-    - jsonPath: .status.type
+    - jsonPath: .status.deploymentGroupStatus.type
       name: Type
+      type: string
+    - jsonPath: .status.phase
+      name: Phase
       type: string
     - jsonPath: .status.replicas
       name: Replicas
@@ -6998,9 +7001,10 @@ spec:
                 - type
                 type: object
               phase:
+                default: Unknown
                 description: 'INSERT ADDITIONAL STATUS FIELD - define observed state
                   of cluster Important: Run "make" to regenerate code after modifying
-                  this file // workloads 状态'
+                  this file workloads 状态'
                 type: string
               serviceStatus:
                 properties:
@@ -7008,8 +7012,6 @@ spec:
                     description: serviceIP  如果EnableService = true 则输出serviceIP
                     type: string
                 type: object
-            required:
-            - phase
             type: object
         type: object
     served: true

@@ -102,7 +102,7 @@ func (r *WorkloadReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Complete(r)
 }
 
-// 集中处理 部署组的func
+// 集中处理 部署组
 func (r *WorkloadReconciler) deploymentGroup(instance *workloadsv1alpha1.Workload, ctx context.Context, req ctrl.Request) (*workloadsv1alpha1.DeploymentGroupStatus, error) {
 	// 获取工作负载模版
 	w := template.NewWorkload(instance).Template()

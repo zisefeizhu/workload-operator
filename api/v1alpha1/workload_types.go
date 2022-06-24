@@ -82,8 +82,9 @@ const (
 type WorkloadStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
-	//// workloads 状态
-	Phase                 Phase `json:"phase" binding:"required"`
+	// workloads 状态
+	// +kubebuilder:default:="Unknown"
+	Phase                 Phase `json:"phase,omitempty"`
 	DeploymentGroupStatus `json:"deploymentGroupStatus,omitempty"`
 	ServiceStatus         `json:"serviceStatus,omitempty"`
 }
@@ -105,7 +106,9 @@ type ServiceStatus struct {
 	ServiceIP string `json:"serviceIP,omitempty"`
 }
 
-//+kubebuilder:printcolumn:JSONPath=".status.type",name=Type,type=string
+//+kubebuilder:printcolumn:JSONPath=".status.deploymentGroupStatus.type",name=Type,type=string
+//+kubebuilder:printcolumn:JSONPath=".status.deploymentGroupStatus.type",name=Type,type=string
+//+kubebuilder:printcolumn:JSONPath=".status.phase",name=Phase,type=string
 //+kubebuilder:printcolumn:JSONPath=".status.replicas",name=Replicas,type=integer
 // +kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp"
 //+kubebuilder:object:root=true
