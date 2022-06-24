@@ -53,21 +53,27 @@ type WorkloadReconciler struct {
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.8.3/pkg/reconcile
 
 /*
+  0、如果提前存在同ns下存在同svc或者workloads 直接覆盖掉。
   1、svc 先于 工作负载创建
   2、工作负载适配:deployment";"statefulSet";"daemonSet";"job";"cronJob
 */
 
 func (r *WorkloadReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	//logger := log.FromContext(ctx)
+	_ = r.Logger.WithValues("workloads", req.NamespacedName)
 	forget := reconcile.Result{}
 	requeue := ctrl.Result{
 		RequeueAfter: time.Second * 2,
 	}
-	_ = r.Logger.WithValues("workloads", req.NamespacedName)
 	instance := &workloadsv1alpha1.Workload{}
 	if err := r.Get(ctx, req.NamespacedName, instance); err != nil {
 		return forget, client.IgnoreNotFound(err)
 	}
+
+	//// pending 状态的不处理
+	//if instance.Status.Phase == workloadsv1alpha1.PendingPhase {
+	//	return forget, nil
+	//}
 
 	// svc 处理逻辑
 	svcStatus, err := r.svc(instance, ctx)
@@ -90,13 +96,21 @@ func (r *WorkloadReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	}
 
 	// wk 的 status 处理
-	err = r.workloadStatus(instance, dgStatus, svcStatus, ctx)
+	err, workloadStatus := r.workloadStatus(instance, dgStatus, svcStatus, ctx)
 	if err != nil {
-		return forget, err
+		return requeue, err
 	}
-	// 根据workload 的status 对比spec, 进行矫正
 
-	return requeue, nil
+	// 进入矫正
+	if workloadStatus.Phase != workloadsv1alpha1.RunningPhase {
+		// todo 处理矫正
+		err := r.workloadCorrectionProcessor(&workloadStatus)
+		if err != nil {
+			return requeue, err
+		}
+	}
+
+	return forget, nil
 }
 
 // SetupWithManager sets up the controller with the Manager.

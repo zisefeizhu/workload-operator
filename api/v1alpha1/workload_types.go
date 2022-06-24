@@ -84,7 +84,8 @@ type WorkloadStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 	// workloads 状态
-	// +kubebuilder:default:="Unknown"
+	// 要不要设置默认状态？？？
+	////+kubebuilder:default:="Unknown"
 	Phase                 Phase `json:"phase,omitempty"`
 	DeploymentGroupStatus `json:"deploymentGroupStatus,omitempty"`
 	ServiceStatus         `json:"serviceStatus,omitempty"`
