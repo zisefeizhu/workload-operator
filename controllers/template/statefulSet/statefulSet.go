@@ -17,8 +17,14 @@ func NewStatefulSet(w *workloadsv1alpha1.Workload) *statefulSetClient {
 	}
 }
 
+const kind = "StatefulSet"
+
 func (s *statefulSetClient) Template() interface{} {
 	return &appv1.StatefulSet{
+		TypeMeta: metav1.TypeMeta{
+			Kind: kind,
+			//APIVersion: aPIVersion,
+		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      s.w.Name,
 			Namespace: s.w.Namespace,

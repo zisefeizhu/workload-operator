@@ -17,8 +17,14 @@ func NewDaemonSet(w *workloadsv1alpha1.Workload) *daemonSetClient {
 	}
 }
 
+const kind = "DaemonSet"
+
 func (d *daemonSetClient) Template() interface{} {
 	return &appv1.DaemonSet{
+		TypeMeta: metav1.TypeMeta{
+			Kind: kind,
+			//APIVersion: aPIVersion,
+		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      d.w.Name,
 			Namespace: d.w.Namespace,

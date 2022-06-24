@@ -17,8 +17,14 @@ func NewJob(w *workloadsv1alpha1.Workload) *jobClient {
 	}
 }
 
+const kind = "Job"
+
 func (j *jobClient) Template() interface{} {
 	return &batchv1.Job{
+		TypeMeta: metav1.TypeMeta{
+			Kind: kind,
+			//APIVersion: aPIVersion,
+		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      j.w.Name,
 			Namespace: j.w.Namespace,

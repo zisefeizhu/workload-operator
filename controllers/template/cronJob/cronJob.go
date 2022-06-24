@@ -25,8 +25,14 @@ func NewCronJob(w *workloadsv1alpha1.Workload) *cronJobClient {
    考虑升级kubebuilder版本3.1 --> 3.4
 */
 
+const kind = "CronJob"
+
 func (c *cronJobClient) Template() interface{} {
 	return &batchv1beta1.CronJob{
+		TypeMeta: metav1.TypeMeta{
+			Kind: kind,
+			//APIVersion: aPIVersion,
+		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      c.w.Name,
 			Namespace: c.w.Namespace,
