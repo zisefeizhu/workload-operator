@@ -77,17 +77,25 @@ func (r *WorkloadReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	// svc 处理逻辑
 	svcStatus, err := r.svc(instance, ctx)
 	if err != nil {
+		er := r.workloadPhase(ctx, instance, workloadsv1alpha1.FailedPhase)
+		if er != nil {
+			return ctrl.Result{}, er
+		}
 		return ctrl.Result{}, err
 	}
 
 	// 工作负载 处理逻辑
 	dgStatus, err := r.deploymentGroup(instance, ctx, req)
 	if err != nil {
+		er := r.workloadPhase(ctx, instance, workloadsv1alpha1.FailedPhase)
+		if er != nil {
+			return ctrl.Result{}, er
+		}
 		return ctrl.Result{}, err
 	}
 
 	// wk 的 status 处理
-	err = r.workLoadStatus(instance, dgStatus, svcStatus, ctx)
+	err = r.workloadStatus(instance, dgStatus, svcStatus, ctx)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
@@ -181,35 +189,33 @@ func (r *WorkloadReconciler) svc(instance *workloadsv1alpha1.Workload, ctx conte
 }
 
 // 处理wk status的 func
-func (r *WorkloadReconciler) workLoadStatus(instance *workloadsv1alpha1.Workload, dgStatus *workloadsv1alpha1.DeploymentGroupStatus, svcStatus *workloadsv1alpha1.ServiceStatus, ctx context.Context) error {
+// 这里是存在明显问题的
+// 优化处
+/*
+   考量：1、存在svc 如果svc成功，则workloads，如果不成功，则没必要创建workloads了，这个时候workloads的状态为失败
+        2、不存在svc, 则创建workloads了，那么则进入workloads的状态项：pending\running\update\failed
+*/
+func (r *WorkloadReconciler) workloadStatus(instance *workloadsv1alpha1.Workload, dgStatus *workloadsv1alpha1.DeploymentGroupStatus, svcStatus *workloadsv1alpha1.ServiceStatus, ctx context.Context) error {
 	// status
 	s := workloadsv1alpha1.WorkloadStatus{}
 	s.DeploymentGroupStatus = *dgStatus
 	s.ServiceStatus = *svcStatus
 	// 更改cr的状态
 	// 计算工作负载和svc
-	if instance.Spec.SvcSpec.EnableService {
-		if *dgStatus.Replicas == 0 {
-			s.Phase = workloadsv1alpha1.PendingPhase
-		} else if *dgStatus.Replicas == dgStatus.AvailableReplicas && svcStatus.ServiceIP != "" {
-			s.Phase = workloadsv1alpha1.RunningPhase
-		} else if *dgStatus.Replicas != dgStatus.AvailableReplicas && svcStatus.ServiceIP != "" {
-			s.Phase = workloadsv1alpha1.UpdatePhase
-		}
-	} else {
-		if *dgStatus.Replicas == 0 {
-			s.Phase = workloadsv1alpha1.PendingPhase
-		} else if *dgStatus.Replicas == dgStatus.AvailableReplicas {
-			s.Phase = workloadsv1alpha1.RunningPhase
-		} else if *dgStatus.Replicas != dgStatus.AvailableReplicas {
-			s.Phase = workloadsv1alpha1.FailedPhase
-		}
+	if *dgStatus.Replicas == 0 {
+		s.Phase = workloadsv1alpha1.PendingPhase
+	} else if *dgStatus.Replicas == dgStatus.AvailableReplicas {
+		s.Phase = workloadsv1alpha1.RunningPhase
+	} else if *dgStatus.Replicas != dgStatus.AvailableReplicas {
+		s.Phase = workloadsv1alpha1.UpdatePhase
 	}
 	instance.Status = s
 	// todo
-	err := r.Status().Update(ctx, instance)
-	if err != nil {
-		return err
-	}
-	return nil
+	return r.Status().Update(ctx, instance)
+
+}
+
+func (r *WorkloadReconciler) workloadPhase(ctx context.Context, instance *workloadsv1alpha1.Workload, phase workloadsv1alpha1.Phase) error {
+	instance.Status.Phase = phase
+	return r.Status().Update(ctx, instance)
 }

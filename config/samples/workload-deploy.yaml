@@ -20,7 +20,7 @@ spec:
       matchLabels:
         test: zisefeizhu
         test1: zisefeizhu1
-    replicas: 100
+    replicas: 1
     template:
       metadata:
         labels:
@@ -39,5 +39,5 @@ spec:
       protocol: TCP
       port: 80
       targetPort: http-web-svc
-    enableService: true
+    enableService: false 
 
