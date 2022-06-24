@@ -25,12 +25,12 @@ func (d *daemonSetClient) Template() interface{} {
 			Labels:    d.w.Labels,
 		},
 		Spec: appv1.DaemonSetSpec{
-			Selector: d.w.Spec.Selector,
+			Selector: d.w.Spec.WorkloadSpec.Selector,
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
 					Labels: d.w.Labels,
 				},
-				Spec: d.w.Spec.Template.Spec,
+				Spec: d.w.Spec.WorkloadSpec.Template.Spec,
 			},
 		},
 	}

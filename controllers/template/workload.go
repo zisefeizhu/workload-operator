@@ -16,7 +16,7 @@ type Workload interface {
 
 func NewWorkload(w *workloadsv1alpha1.Workload) Workload {
 	var cli Workload
-	switch w.Spec.Type {
+	switch w.Spec.WorkloadSpec.Type {
 	case workloadsv1alpha1.DeploymentKind:
 		cli = deployment.NewDeployment(w)
 		break

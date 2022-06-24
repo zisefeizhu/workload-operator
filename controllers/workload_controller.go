@@ -117,7 +117,7 @@ func (r *WorkloadReconciler) deploymentGroup(instance *workloadsv1alpha1.Workloa
 				r.Logger.Error(err, "create app failed")
 				return nil, err
 			}
-			r.Recorder.Event(instance, corev1.EventTypeNormal, fmt.Sprintf("%s-controller", instance.Spec.Type), fmt.Sprintf("type is %s name is %s create in  %s namespace", instance.Spec.Type, instance.Name, instance.Namespace))
+			r.Recorder.Event(instance, corev1.EventTypeNormal, fmt.Sprintf("%s-controller", instance.Spec.WorkloadSpec.Type), fmt.Sprintf("type is %s name is %s create in  %s namespace", instance.Spec.WorkloadSpec.Type, instance.Name, instance.Namespace))
 		}
 		if !errors.IsNotFound(err) {
 			return nil, err
@@ -145,18 +145,18 @@ func (r *WorkloadReconciler) svc(instance *workloadsv1alpha1.Workload, ctx conte
 	}
 	s := &corev1.Service{}
 	if err := r.Get(ctx, types.NamespacedName{Name: instance.Name, Namespace: instance.Namespace}, s); err != nil {
-		if errors.IsNotFound(err) && instance.Spec.EnableService {
+		if errors.IsNotFound(err) && instance.Spec.SvcSpec.EnableService {
 			if err := r.Create(ctx, service); err != nil {
 				r.Logger.Error(err, "create service failed")
 				return nil, err
 			}
 			r.Recorder.Event(instance, corev1.EventTypeNormal, fmt.Sprintf("%s-controller", "service"), fmt.Sprintf("type is %s name is %s create in  %s namespace", "serivce", instance.Name, instance.Namespace))
 		}
-		if !errors.IsNotFound(err) && instance.Spec.EnableService {
+		if !errors.IsNotFound(err) && instance.Spec.SvcSpec.EnableService {
 			return nil, err
 		}
 	} else {
-		if instance.Spec.EnableService {
+		if instance.Spec.SvcSpec.EnableService {
 			currIP := s.Spec.ClusterIP
 			s.Spec.ClusterIP = currIP
 			service.Spec.ClusterIP = currIP

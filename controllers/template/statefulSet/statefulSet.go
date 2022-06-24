@@ -26,15 +26,15 @@ func (s *statefulSetClient) Template() interface{} {
 		},
 		Spec: appv1.StatefulSetSpec{
 			ServiceName: s.w.Name,
-			Selector:    s.w.Spec.Selector,
-			Replicas:    s.w.Spec.Replicas,
+			Selector:    s.w.Spec.WorkloadSpec.Selector,
+			Replicas:    s.w.Spec.WorkloadSpec.Replicas,
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
 					Labels: s.w.Labels,
 				},
-				Spec: s.w.Spec.Template.Spec,
+				Spec: s.w.Spec.WorkloadSpec.Template.Spec,
 			},
-			VolumeClaimTemplates: s.w.Spec.VolumeClaimTemplates,
+			VolumeClaimTemplates: s.w.Spec.WorkloadSpec.VolumeClaimTemplates,
 		},
 	}
 }

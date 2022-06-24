@@ -25,13 +25,13 @@ func (j *jobClient) Template() interface{} {
 			Labels:    j.w.Labels,
 		},
 		Spec: batchv1.JobSpec{
-			BackoffLimit: j.w.Spec.JobBackoffLimit,
+			BackoffLimit: j.w.Spec.WorkloadSpec.JobBackoffLimit,
 			//Selector:     j.w.Spec.Selector,    job selector 不允许自定义,controller  生成 controller-uid
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
 					Labels: j.w.Labels,
 				},
-				Spec: j.w.Spec.Template.Spec,
+				Spec: j.w.Spec.WorkloadSpec.Template.Spec,
 			},
 		},
 	}

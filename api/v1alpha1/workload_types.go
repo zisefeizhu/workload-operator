@@ -43,27 +43,30 @@ type WorkloadSpec struct {
 	Type Kind `json:"type"`
 	// 副本数
 	Replicas *int32 `json:"replicas,omitempty"`
-	// 是否启用service
-	EnableService bool `json:"enableService,omitempty"`
 	// 标签选择器
 	Selector *metav1.LabelSelector `json:"selector,omitempty"`
 	// pod模版
 	Template *corev1.PodTemplateSpec `json:"template"`
-	// service 类型
-	ServiceType corev1.ServiceType `json:"serviceType,omitempty"`
-	// service 端口
-	ServicePorts []corev1.ServicePort `json:"servicePorts,omitempty"`
 	// statefulSet 存储模版
 	VolumeClaimTemplates []corev1.PersistentVolumeClaim `json:"volumeClaimTemplates,omitempty"`
-	// statefulSet 无头服务
-	//clusterIP: None
-	HeadlessService bool `json:"headlessService,omitempty"`
 	// job 重试次数
 	//backoffLimit
 	JobBackoffLimit *int32 `json:"jobBackoffLimit,omitempty"`
 	// crontabJob
 	// schedule
 	Schedule string `json:"schedule,omitempty"`
+}
+
+type SvcSpec struct {
+	// 是否启用service
+	EnableService bool `json:"enableService,omitempty"`
+	// service 类型
+	ServiceType corev1.ServiceType `json:"serviceType,omitempty"`
+	// service 端口
+	ServicePorts []corev1.ServicePort `json:"servicePorts,omitempty"`
+	// statefulSet 无头服务
+	//clusterIP: None
+	HeadlessService bool `json:"headlessService,omitempty"`
 }
 
 type Phase string
@@ -113,8 +116,13 @@ type ServiceStatus struct {
 type Workload struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
-	Spec              WorkloadSpec   `json:"spec,omitempty"`
+	Spec              Spec           `json:"spec,omitempty"`
 	Status            WorkloadStatus `json:"status,omitempty"`
+}
+
+type Spec struct {
+	WorkloadSpec WorkloadSpec `json:"workloadSpec"`
+	SvcSpec      SvcSpec      `json:"svcSpec,omitempty"`
 }
 
 //+kubebuilder:object:root=true

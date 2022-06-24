@@ -34,13 +34,13 @@ func (d *deploymentClient) Template() interface{} {
 			Labels:    d.w.Labels,
 		},
 		Spec: appv1.DeploymentSpec{
-			Replicas: d.w.Spec.Replicas,
-			Selector: d.w.Spec.Selector,
+			Replicas: d.w.Spec.WorkloadSpec.Replicas,
+			Selector: d.w.Spec.WorkloadSpec.Selector,
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
 					Labels: d.w.Labels,
 				},
-				Spec: d.w.Spec.Template.Spec,
+				Spec: d.w.Spec.WorkloadSpec.Template.Spec,
 			},
 		},
 	}

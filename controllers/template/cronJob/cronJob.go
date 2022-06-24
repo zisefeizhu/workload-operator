@@ -33,11 +33,11 @@ func (c *cronJobClient) Template() interface{} {
 			Labels:    c.w.Labels,
 		},
 		Spec: batchv1beta1.CronJobSpec{
-			Schedule: c.w.Spec.Schedule,
+			Schedule: c.w.Spec.WorkloadSpec.Schedule,
 			JobTemplate: batchv1beta1.JobTemplateSpec{
 				Spec: batchv1.JobSpec{
 					Template: corev1.PodTemplateSpec{
-						Spec: c.w.Spec.Template.Spec,
+						Spec: c.w.Spec.WorkloadSpec.Template.Spec,
 					},
 				},
 			},
