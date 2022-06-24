@@ -189,12 +189,6 @@ func (r *WorkloadReconciler) svc(instance *workloadsv1alpha1.Workload, ctx conte
 }
 
 // 处理wk status的 func
-// 这里是存在明显问题的
-// 优化处
-/*
-   考量：1、存在svc 如果svc成功，则workloads，如果不成功，则没必要创建workloads了，这个时候workloads的状态为失败
-        2、不存在svc, 则创建workloads了，那么则进入workloads的状态项：pending\running\update\failed
-*/
 func (r *WorkloadReconciler) workloadStatus(instance *workloadsv1alpha1.Workload, dgStatus *workloadsv1alpha1.DeploymentGroupStatus, svcStatus *workloadsv1alpha1.ServiceStatus, ctx context.Context) error {
 	// status
 	s := workloadsv1alpha1.WorkloadStatus{}
@@ -215,6 +209,7 @@ func (r *WorkloadReconciler) workloadStatus(instance *workloadsv1alpha1.Workload
 
 }
 
+// 处理wk phase的 func
 func (r *WorkloadReconciler) workloadPhase(ctx context.Context, instance *workloadsv1alpha1.Workload, phase workloadsv1alpha1.Phase) error {
 	instance.Status.Phase = phase
 	return r.Status().Update(ctx, instance)
