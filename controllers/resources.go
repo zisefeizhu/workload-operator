@@ -5,7 +5,6 @@ import (
 	"fmt"
 	workloadsv1alpha1 "github.com/zisefeizhu/workload-operator/api/v1alpha1"
 	"github.com/zisefeizhu/workload-operator/controllers/template"
-	"github.com/zisefeizhu/workload-operator/controllers/utils"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -46,7 +45,7 @@ func (r *WorkloadReconciler) deploymentGroup(instance *workloadsv1alpha1.Workloa
 	// todo
 	// 处理工作负载的status
 	// 类型断言
-	return utils.WorkloadStatusProcessor(w), nil
+	return workloadStatusProcessor(w), nil
 }
 
 // 处理svc的 func
@@ -112,7 +111,6 @@ func (r *WorkloadReconciler) workloadStatus(instance *workloadsv1alpha1.Workload
 	instance.Status = s
 	// todo
 	return r.Status().Update(ctx, instance)
-
 }
 
 // 处理wk phase的 func
