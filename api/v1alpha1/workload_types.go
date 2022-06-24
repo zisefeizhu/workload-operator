@@ -74,6 +74,7 @@ type Phase string
 const (
 	RunningPhase Phase = "Running"
 	UpdatePhase  Phase = "Update"
+	PendingPhase Phase = "Pending"
 	UnknownPhase Phase = "Unknown"
 	FailedPhase  Phase = "Failed"
 )
@@ -107,10 +108,9 @@ type ServiceStatus struct {
 }
 
 //+kubebuilder:printcolumn:JSONPath=".status.deploymentGroupStatus.type",name=Type,type=string
-//+kubebuilder:printcolumn:JSONPath=".status.deploymentGroupStatus.type",name=Type,type=string
 //+kubebuilder:printcolumn:JSONPath=".status.phase",name=Phase,type=string
-//+kubebuilder:printcolumn:JSONPath=".status.replicas",name=Replicas,type=integer
-// +kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp"
+//+kubebuilder:printcolumn:JSONPath=".status.deploymentGroupStatus.replicas",name=Replicas,type=string
+//+kubebuilder:printcolumn:name="Age",type="date",JSONPath=".metadata.creationTimestamp"
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
 //+kubebuilder:resource:shortName=wk

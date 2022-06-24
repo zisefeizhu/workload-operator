@@ -25,9 +25,9 @@ spec:
     - jsonPath: .status.phase
       name: Phase
       type: string
-    - jsonPath: .status.replicas
+    - jsonPath: .status.deploymentGroupStatus.replicas
       name: Replicas
-      type: integer
+      type: string
     - jsonPath: .metadata.creationTimestamp
       name: Age
       type: date

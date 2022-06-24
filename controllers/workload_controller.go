@@ -186,6 +186,25 @@ func (r *WorkloadReconciler) workLoadStatus(instance *workloadsv1alpha1.Workload
 	s := workloadsv1alpha1.WorkloadStatus{}
 	s.DeploymentGroupStatus = *dgStatus
 	s.ServiceStatus = *svcStatus
+	// 更改cr的状态
+	// 计算工作负载和svc
+	if instance.Spec.SvcSpec.EnableService {
+		if *dgStatus.Replicas == 0 {
+			s.Phase = workloadsv1alpha1.PendingPhase
+		} else if *dgStatus.Replicas == dgStatus.AvailableReplicas && svcStatus.ServiceIP != "" {
+			s.Phase = workloadsv1alpha1.RunningPhase
+		} else if *dgStatus.Replicas != dgStatus.AvailableReplicas && svcStatus.ServiceIP != "" {
+			s.Phase = workloadsv1alpha1.UpdatePhase
+		}
+	} else {
+		if *dgStatus.Replicas == 0 {
+			s.Phase = workloadsv1alpha1.PendingPhase
+		} else if *dgStatus.Replicas == dgStatus.AvailableReplicas {
+			s.Phase = workloadsv1alpha1.RunningPhase
+		} else if *dgStatus.Replicas != dgStatus.AvailableReplicas {
+			s.Phase = workloadsv1alpha1.FailedPhase
+		}
+	}
 	instance.Status = s
 	// todo
 	err := r.Status().Update(ctx, instance)
