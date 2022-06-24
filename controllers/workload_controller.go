@@ -33,6 +33,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+	"time"
 )
 
 // WorkloadReconciler reconciles a Workload object
@@ -80,8 +81,6 @@ func (r *WorkloadReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	}
 
 	// 工作负载 处理逻辑
-	// todo
-	// 这里应该是要把status字段返出来的
 	dgStatus, err := r.deploymentGroup(instance, ctx, req)
 	if err != nil {
 		return ctrl.Result{}, err
@@ -93,7 +92,7 @@ func (r *WorkloadReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		return ctrl.Result{}, err
 	}
 
-	return ctrl.Result{}, nil
+	return ctrl.Result{RequeueAfter: 2 * time.Second}, nil
 }
 
 // SetupWithManager sets up the controller with the Manager.
@@ -128,20 +127,18 @@ func (r *WorkloadReconciler) deploymentGroup(instance *workloadsv1alpha1.Workloa
 			r.Logger.Error(err, "update app failed")
 			return nil, err
 		}
-		r.Recorder.Event(instance, corev1.EventTypeNormal, fmt.Sprintf("%s-controller", instance.Spec.Type), fmt.Sprintf("type is %s name is %s  update in %s namespace", instance.Spec.Type, instance.Name, instance.Namespace))
+		//r.Recorder.Event(instance, corev1.EventTypeNormal, fmt.Sprintf("%s-controller", instance.Spec.Type), fmt.Sprintf("type is %s name is %s  update in %s namespace", instance.Spec.Type, instance.Name, instance.Namespace))
 	}
-
 	// todo
 	// 处理工作负载的status
 	// 类型断言
-
-	return nil, nil
+	return utils.WorkloadStatusProcessor(w), nil
 }
 
 // 处理svc的 func
 func (r *WorkloadReconciler) svc(instance *workloadsv1alpha1.Workload, ctx context.Context) (*workloadsv1alpha1.ServiceStatus, error) {
 	// service的处理
-	service := utils.NewService(instance)
+	service := template.NewService(instance)
 	err := controllerutil.SetControllerReference(instance, service, r.Scheme)
 	if err != nil {
 		return nil, err

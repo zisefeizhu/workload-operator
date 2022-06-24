@@ -20,7 +20,7 @@ spec:
     matchLabels:
       test: zisefeizhu
       test1: zisefeizhu1
-  replicas: 2
+  replicas: 3
   serviceType: ClusterIP 
   servicePorts:
   - name: name-of-service-port

@@ -17,8 +17,17 @@ func NewDeployment(w *workloadsv1alpha1.Workload) *deploymentClient {
 	}
 }
 
+const (
+	kind = "Deployment"
+	//aPIVersion = "apps/v1"
+)
+
 func (d *deploymentClient) Template() interface{} {
 	return &appv1.Deployment{
+		TypeMeta: metav1.TypeMeta{
+			Kind: kind,
+			//APIVersion: aPIVersion,
+		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      d.w.Name,
 			Namespace: d.w.Namespace,
