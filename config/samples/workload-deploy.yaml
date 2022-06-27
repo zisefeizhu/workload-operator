@@ -20,7 +20,7 @@ spec:
       matchLabels:
         test: zisefeizhu
         test1: zisefeizhu1
-    replicas: 1
+    replicas: 10
     template:
       metadata:
         labels:

@@ -18,6 +18,7 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 	"github.com/go-logr/logr"
 	workloadsv1alpha1 "github.com/zisefeizhu/workload-operator/api/v1alpha1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -56,10 +57,10 @@ type WorkloadReconciler struct {
   0、如果提前存在同ns下存在同svc或者workloads 直接覆盖掉。
   1、svc 先于 工作负载创建
   2、工作负载适配:deployment";"statefulSet";"daemonSet";"job";"cronJob
+  3、如何校验部署组的spec和status呢？ 这是个问题
 */
 
 func (r *WorkloadReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	//logger := log.FromContext(ctx)
 	_ = r.Logger.WithValues("workloads", req.NamespacedName)
 	forget := reconcile.Result{}
 	requeue := ctrl.Result{
@@ -69,11 +70,6 @@ func (r *WorkloadReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	if err := r.Get(ctx, req.NamespacedName, instance); err != nil {
 		return forget, client.IgnoreNotFound(err)
 	}
-
-	//// pending 状态的不处理
-	//if instance.Status.Phase == workloadsv1alpha1.PendingPhase {
-	//	return forget, nil
-	//}
 
 	// svc 处理逻辑
 	svcStatus, err := r.svc(instance, ctx)
@@ -100,17 +96,19 @@ func (r *WorkloadReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	if err != nil {
 		return requeue, err
 	}
+	fmt.Println(workloadStatus)
 
 	// 进入矫正
-	if workloadStatus.Phase != workloadsv1alpha1.RunningPhase {
-		// todo 处理矫正
-		err := r.workloadCorrectionProcessor(&workloadStatus)
-		if err != nil {
-			return requeue, err
-		}
-	}
+	//if workloadStatus.Phase != workloadsv1alpha1.RunningPhase {
+	//	// todo 处理矫正
+	//	// 这里料想复杂
+	//	err := r.workloadCorrectionProcessor(&workloadStatus)
+	//	if err != nil {
+	//		return requeue, err
+	//	}
+	//}
 
-	return forget, nil
+	return requeue, nil
 }
 
 // SetupWithManager sets up the controller with the Manager.

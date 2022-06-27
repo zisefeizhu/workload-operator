@@ -37,6 +37,8 @@ func (r *WorkloadReconciler) deploymentGroup(instance *workloadsv1alpha1.Workloa
 			return nil, err
 		}
 	} else {
+		// todo 这里需要优化到获取 old spec
+		// 新旧spec 比较
 		if err := r.Update(ctx, w.(client.Object)); err != nil {
 			r.Logger.Error(err, "update app failed")
 			return nil, err
@@ -45,7 +47,6 @@ func (r *WorkloadReconciler) deploymentGroup(instance *workloadsv1alpha1.Workloa
 	}
 	// todo
 	// 处理工作负载的status
-	// 类型断言
 	return r.workloadStatusProcessor(w), nil
 }
 

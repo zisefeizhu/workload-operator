@@ -86,7 +86,9 @@ type WorkloadStatus struct {
 	// workloads 状态
 	// 要不要设置默认状态？？？
 	////+kubebuilder:default:="Unknown"
-	Phase                 Phase `json:"phase,omitempty"`
+	Phase Phase `json:"phase,omitempty"`
+	// 部署组最后一次更新时间
+	LastUpdateTime        string `json:"lastUpdateTime"`
 	DeploymentGroupStatus `json:"deploymentGroupStatus,omitempty"`
 	ServiceStatus         `json:"serviceStatus,omitempty"`
 }

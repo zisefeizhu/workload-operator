@@ -7000,6 +7000,9 @@ spec:
                 - availableReplicas
                 - type
                 type: object
+              lastUpdateTime:
+                description: 部署组最后一次更新时间
+                type: string
               phase:
                 description: 'INSERT ADDITIONAL STATUS FIELD - define observed state
                   of cluster Important: Run "make" to regenerate code after modifying
@@ -7011,6 +7014,8 @@ spec:
                     description: serviceIP  如果EnableService = true 则输出serviceIP
                     type: string
                 type: object
+            required:
+            - lastUpdateTime
             type: object
         type: object
     served: true

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	workloadsv1alpha1 "github.com/zisefeizhu/workload-operator/api/v1alpha1"
+	"github.com/zisefeizhu/workload-operator/tool"
 	appv1 "k8s.io/api/apps/v1"
 )
 
@@ -22,6 +23,7 @@ func (r *WorkloadReconciler) workloadStatus(instance *workloadsv1alpha1.Workload
 	} else if *dgStatus.Replicas != dgStatus.AvailableReplicas {
 		s.Phase = workloadsv1alpha1.UpdatePhase
 	}
+	s.LastUpdateTime = tool.TimeToKubernetes()
 	instance.Status = s
 	// todo
 	return r.Status().Update(ctx, instance), s
@@ -30,6 +32,7 @@ func (r *WorkloadReconciler) workloadStatus(instance *workloadsv1alpha1.Workload
 // 处理wk phase的 func
 func (r *WorkloadReconciler) workloadPhase(ctx context.Context, instance *workloadsv1alpha1.Workload, phase workloadsv1alpha1.Phase) error {
 	instance.Status.Phase = phase
+	instance.Status.LastUpdateTime = tool.TimeToKubernetes()
 	return r.Status().Update(ctx, instance)
 }
 
