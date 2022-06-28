@@ -71,6 +71,8 @@ func (r *WorkloadReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 		return forget, client.IgnoreNotFound(err)
 	}
 
+	// 这里就应该处理status
+
 	// svc 处理逻辑
 	svcStatus, err := r.svc(instance, ctx)
 	if err != nil {
